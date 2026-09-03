@@ -228,66 +228,6 @@ def write_histogram(cover_path, stego_path, output_path):
     chart.save(output_path, "PNG")
 
 
-def write_report(cover_path, stego_path, histogram_path, report_path):
-    stats = compare_images(cover_path, stego_path)
-    size_change = stats["stego_size_bytes"] - stats["cover_size_bytes"]
-    psnr = "infinite" if math.isinf(stats["psnr_db"]) else f"{stats['psnr_db']:.2f} dB"
-
-    report = f"""# Steganography Tool Report
-
-## 1. Tool Functionality
-
-This project hides secret files inside a cover image using Least Significant Bit (LSB) steganography. It supports text files, document files such as PDF or DOC, and image files such as PNG or JPG.
-
-The generated output image is saved as a PNG stego image so the hidden bits are preserved without JPEG compression damage.
-
-## 2. Visual Quality Check
-
-Cover image: `{cover_path}`
-
-Stego image: `{stego_path}`
-
-Histogram comparison: `{histogram_path}`
-
-The cover image and stego image should look almost identical to the human eye. This is because the tool changes only the least significant bit of the red, green, and blue color channels. A one-bit change is normally too small to notice visually.
-
-Changed pixels: {stats["changed_pixels"]} out of {stats["total_pixels"]}
-
-Mean Squared Error: {stats["mse"]:.6f}
-
-PSNR: {psnr}
-
-## 3. File Size Check
-
-Cover file size: {stats["cover_size_bytes"]} bytes
-
-Stego file size: {stats["stego_size_bytes"]} bytes
-
-Difference: {size_change} bytes
-
-The file size may change because the output is saved as PNG. PNG uses lossless compression, so the exact size depends on image content and how well the pixels compress. Even when the image dimensions stay the same, changing some least significant bits can slightly affect PNG compression. If the original cover image was JPG, the stego PNG is often larger because JPG is lossy and usually more compressed.
-
-## 4. Step-by-Step Demonstration
-
-1. Choose a cover image.
-2. Choose a secret file such as `secret.txt`, `secret.pdf`, `secret.doc`, `secret.png`, or `secret.jpg`.
-3. Run the hide command to create `stego.png`.
-4. Run the analyze command to create the histogram and report.
-5. Run the extract command to prove the hidden file can be recovered.
-
-## 5. Teamwork and Presentation
-
-Suggested teamwork evidence:
-
-- Member 1: Prepared cover image and secret test files.
-- Member 2: Ran the Python tool and captured screenshots.
-- Member 3: Compared visual quality and histogram results.
-- Member 4: Wrote the file size explanation and final report.
-"""
-    Path(report_path).write_text(report, encoding="utf-8")
-    return stats
-
-
 def main():
     parser = argparse.ArgumentParser(description="LSB steganography tool for hiding files inside PNG images.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -305,7 +245,6 @@ def main():
     analyze.add_argument("--cover", required=True, help="Path to the cover image.")
     analyze.add_argument("--stego", required=True, help="Path to the stego image.")
     analyze.add_argument("--histogram", default="histogram_comparison.png", help="Output histogram image.")
-    analyze.add_argument("--report", default="report.md", help="Output Markdown report.")
     analyze.add_argument("--json", default=None, help="Optional JSON statistics output path.")
 
     capacity = subparsers.add_parser("capacity", help="Show how much data a cover image can store.")
@@ -324,11 +263,10 @@ def main():
             print(f"Extracted secret file: {output}")
         elif args.command == "analyze":
             write_histogram(args.cover, args.stego, args.histogram)
-            stats = write_report(args.cover, args.stego, args.histogram, args.report)
+            stats = compare_images(args.cover, args.stego)
             if args.json:
                 Path(args.json).write_text(json.dumps(stats, indent=2), encoding="utf-8")
             print(f"Created histogram: {args.histogram}")
-            print(f"Created report: {args.report}")
             print(json.dumps(stats, indent=2))
         elif args.command == "capacity":
             print(f"Approximate capacity: {capacity_bytes(args.cover)} bytes")

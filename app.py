@@ -8,9 +8,9 @@ import tempfile
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import urlparse
 
-from stego_tool import StegoError, capacity_bytes, compare_images, extract_file, hide_file, write_histogram, write_report
+from stego_tool import StegoError, capacity_bytes, compare_images, extract_file, hide_file, write_histogram
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -91,17 +91,16 @@ class StegoRequestHandler(BaseHTTPRequestHandler):
             secret_text = self._field_value(form, "secret_text", "")
             if not secret_text:
                 raise ValueError("Please enter secret text or choose a secret file.")
-            secret_path = run_dir / "secret.txt"
+            secret_path = run_dir / "extracted_secret.txt"
             secret_path.write_text(secret_text, encoding="utf-8")
 
         stego_path = run_dir / "stego.png"
         histogram_path = run_dir / "histogram_comparison.png"
-        report_path = run_dir / "report.md"
         stats_path = run_dir / "stats.json"
 
         payload_bytes, changed_values = hide_file(cover_path, secret_path, stego_path)
         write_histogram(cover_path, stego_path, histogram_path)
-        stats = write_report(cover_path, stego_path, histogram_path, report_path)
+        stats = compare_images(cover_path, stego_path)
         stats["payload_bytes"] = payload_bytes
         stats["changed_color_values"] = changed_values
         stats["capacity_bytes"] = capacity_bytes(cover_path)
@@ -113,7 +112,6 @@ class StegoRequestHandler(BaseHTTPRequestHandler):
             "cover_url": f"/outputs/{rel}/{cover_path.name}",
             "stego_url": f"/outputs/{rel}/stego.png",
             "histogram_url": f"/outputs/{rel}/histogram_comparison.png",
-            "report_url": f"/outputs/{rel}/report.md",
             "stats_url": f"/outputs/{rel}/stats.json",
             "download_name": "stego.png",
             "stats": stats,
