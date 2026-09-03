@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Steganography Tool</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">LSB Steganography</p>
+        <h1>Hide files inside an image</h1>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <form id="hideForm" class="panel">
+        <div class="section-head">
+          <h2>Create stego image</h2>
+          <span id="capacityLabel">Choose a cover image</span>
+        </div>
+
+        <label class="dropzone">
+          <input id="coverInput" name="cover" type="file" accept="image/png,image/jpeg" required>
+          <span class="drop-title">Cover image</span>
+          <span class="drop-subtitle">PNG or JPG</span>
+        </label>
+
+        <div class="preview-row">
+          <figure>
+            <img id="coverPreview" alt="Cover preview">
+            <figcaption>Cover</figcaption>
+          </figure>
+          <figure>
+            <img id="stegoPreview" alt="Stego preview">
+            <figcaption>Stego output</figcaption>
+          </figure>
+        </div>
+
+        <div class="segmented" role="tablist" aria-label="Secret type">
+          <button type="button" class="active" data-mode="text">Text</button>
+          <button type="button" data-mode="file">File</button>
+        </div>
+
+        <input type="hidden" id="secretMode" name="secret_mode" value="text">
+
+        <label id="textSecretWrap" class="field">
+          <span>Secret text</span>
+          <textarea name="secret_text" rows="6" placeholder="Type your secret message here..."></textarea>
+        </label>
+
+        <label id="fileSecretWrap" class="dropzone hidden">
+          <input name="secret_file" type="file" accept=".txt,.pdf,.doc,.docx,.png,.jpg,.jpeg">
+          <span class="drop-title">Secret file</span>
+          <span class="drop-subtitle">TXT, PDF, DOC, PNG, JPG</span>
+        </label>
+
+        <button class="primary-button" type="submit">Generate stego.png</button>
+        <p id="hideStatus" class="status"></p>
+      </form>
+
+      <section class="panel results">
+        <div class="section-head">
+          <h2>Output and analysis</h2>
+          <a id="downloadStego" class="small-button disabled" href="#" download="stego.png">Download stego.png</a>
+        </div>
+
+        <div class="metrics">
+          <div><span>Cover size</span><strong id="coverSize">-</strong></div>
+          <div><span>Stego size</span><strong id="stegoSize">-</strong></div>
+          <div><span>Changed pixels</span><strong id="changedPixels">-</strong></div>
+          <div><span>PSNR</span><strong id="psnr">-</strong></div>
+        </div>
+
+        <div class="analysis-copy" id="analysisCopy">
+          Upload a cover image and secret content to generate the comparison.
+        </div>
+
+        <figure class="histogram">
+          <img id="histogramImage" alt="Histogram comparison">
+          <figcaption>Histogram comparison</figcaption>
+        </figure>
+
+        <div class="histogram-note" id="histogramNote">
+          <strong>Histogram explanation</strong>
+          <p>The solid lines show the original cover image and the dotted lines show the stego image. After hiding data, the lines should stay very close because LSB steganography only changes the smallest bit of selected color values.</p>
+        </div>
+      </section>
+    </section>
+
+    <section id="extract" class="panel extract-panel">
+      <div class="section-head">
+        <h2>Extract hidden file</h2>
+        <span>Use a stego image created by this tool</span>
+      </div>
+      <form id="extractForm" class="extract-form">
+        <label class="dropzone compact">
+          <input name="stego" type="file" accept="image/png" required>
+          <span class="drop-title">Stego image</span>
+          <span class="drop-subtitle">PNG only</span>
+        </label>
+        <button class="primary-button" type="submit">Extract secret</button>
+      </form>
+      <p id="extractStatus" class="status"></p>
+      <a id="downloadExtracted" class="small-button disabled" href="#">Download extracted file</a>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
